@@ -46,7 +46,7 @@ metric = 'angular'  # or 'euclidean'
 model_repo = os.getcwd() + '/model'
 model = {'repository':model_repo,'templates':'../templates/caffe/'}
 parameters_input = {'connector':'image','width':width,'height':height}
-parameters_mllib = {'nclasses':nclasses}#,'template':'googlenet'}
+parameters_mllib = {'nclasses':nclasses,'template':'googlenet'}
 parameters_output = {}
 dd.put_service(sname,model,description,mllib,
                parameters_input,parameters_mllib,parameters_output,mltype)
@@ -110,3 +110,4 @@ if args.search:
         cv2.waitKey(0)
     
 dd.delete_service(sname,clear='')
+
