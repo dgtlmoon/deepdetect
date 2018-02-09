@@ -10,7 +10,10 @@ RUN ln -sf /dev/stderr /var/log/deepdetect.log
 
 RUN useradd -ms /bin/bash dd
 
-RUN apt-get update && apt-get install -y git cmake build-essential libgoogle-glog-dev libgflags-dev libeigen3-dev libopencv-dev libcppnetlib-dev libboost-dev libboost-iostreams-dev libcurl4-openssl-dev protobuf-compiler libopenblas-dev libhdf5-dev libprotobuf-dev libleveldb-dev libsnappy-dev liblmdb-dev libutfcpp-dev wget unzip
+RUN apt-get update && apt-get install -y git cmake build-essential libgoogle-glog-dev libgflags-dev libeigen3-dev libopencv-dev libcppnetlib-dev libboost-dev libboost-iostreams-dev libcurl4-openssl-dev protobuf-compiler libopenblas-dev libhdf5-dev libprotobuf-dev libleveldb-dev libsnappy-dev liblmdb-dev libutfcpp-dev wget unzip telnet
+
+# Extra bits
+RUN apt-get install python-setuptools python-dev -y
 
 WORKDIR /opt
 RUN git clone https://github.com/jpbarrette/curlpp.git
@@ -20,11 +23,17 @@ RUN make install
 RUN cp /usr/local/lib/libcurlpp.* /usr/lib/
 
 WORKDIR /opt
-RUN git clone https://github.com/beniz/deepdetect.git && cd deepdetect && mkdir build
+RUN git clone https://github.com/dgtlmoon/deepdetect.git && cd deepdetect && mkdir build
 
+# https://github.com/beniz/deepdetect/tree/master/demo/imgsearch
 WORKDIR /opt/deepdetect/build
-RUN cmake .. -DUSE_XGBOOST=ON
+RUN cmake .. -DUSE_XGBOOST=ON -DUSE_SIMSEARCH=ON
 RUN make
+
+
+RUN apt-get install python-pip -y && pip install --upgrade pip
+RUN pip install annoy opencv-python opencv-utils opencv_engine opencv_helpers opencvutils requests
+
 
 # external volume to be mapped, e.g. for models or training data
 RUN mkdir /data
@@ -43,6 +52,8 @@ RUN cp /opt/deepdetect/templates/caffe/resnet_50/*prototxt /opt/models/resnet_50
 # permissions
 RUN chown -R dd:dd /opt/deepdetect
 RUN chown -R dd:dd /opt/models
+
+RUN cd /opt/deepdetect/demo/imgsearch && mkdir model && cd model && wget http://www.deepdetect.com/models/ggnet/bvlc_googlenet.caffemodel
 
 USER dd
 WORKDIR /opt/deepdetect/build/main
